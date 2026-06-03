@@ -12,7 +12,7 @@ counted = False
 frame_number = 0
 
 # Put line near rollers
-line_y = 300
+line_y = 420
 
 while True:
 
@@ -62,7 +62,7 @@ while True:
         area = cv2.contourArea(contour)
 
         # Ignore tiny noise
-        if area < 2000:
+        if area < 2500:
             continue
 
         object_detected = True
