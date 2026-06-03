@@ -10,8 +10,9 @@ cap = cv2.VideoCapture(VIDEO_PATH)
 count = 0
 counted = False
 frame_number = 0
+missing_frames = 0
 
-# Put line near rollers
+# Counting line below rollers
 line_y = 420
 
 while True:
@@ -61,8 +62,8 @@ while True:
 
         area = cv2.contourArea(contour)
 
-        # Ignore tiny noise
-        if area < 2500:
+        # Ignore noise
+        if area < 3500:
             continue
 
         object_detected = True
@@ -71,7 +72,7 @@ while True:
 
         cx, cy = get_center(x, y, w, h)
 
-        # Green box
+        # Green bounding box
         cv2.rectangle(
             frame,
             (x, y),
@@ -89,7 +90,7 @@ while True:
             -1
         )
 
-        # Show CY on frame
+        # Show CY value
         cv2.putText(
             frame,
             f"CY:{cy}",
@@ -100,17 +101,20 @@ while True:
             2
         )
 
-        print("CY =", cy)
-
-        # Counting logic
+        # Count product once
         if cy > line_y and not counted:
             count += 1
             counted = True
 
             print("COUNT =", count)
 
-    # Reset when object disappears
+    # Reset only after object is missing for several frames
     if not object_detected:
+        missing_frames += 1
+    else:
+        missing_frames = 0
+
+    if missing_frames > 15:
         counted = False
 
     cv2.putText(
