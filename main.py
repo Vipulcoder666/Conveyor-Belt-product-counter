@@ -6,6 +6,7 @@ from utils.counter import get_center
 VIDEO_PATH = "videos/conveyor.mp4"
 
 cap = cv2.VideoCapture(VIDEO_PATH)
+# cap = cv2.VideoCapture(0)
 
 count = 0
 counted = False
