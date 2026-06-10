@@ -7,7 +7,7 @@ from utils.counter import get_center
 # VIDEO_PATH = "videos/conveyor.mp4"
 # cap = cv2.VideoCapture(VIDEO_PATH)
 
-url = "http://192.168.1.92:8080/video"
+url = "http://192.168.1.70:8080/video"
 cap = cv2.VideoCapture(url)
 
 # cap = cv2.VideoCapture(0)
@@ -16,6 +16,7 @@ count = 0
 counted = False
 frame_number = 0
 missing_frames = 0
+ignore_frames = 0
 
 # Counting line below rollers
 line_y = 420
@@ -31,7 +32,52 @@ while True:
 
     frame_number += 1
 
-    contours, mask = detect_objects(frame)
+    contours, mask, foreground_percent = detect_objects(frame)
+    print(
+        f"Foreground={foreground_percent:.1f}%  Ignore={ignore_frames}"
+    )
+
+    if foreground_percent > 15:
+        ignore_frames = 10
+        counted = True
+
+        print(
+            f"LIGHT CHANGE | Foreground={foreground_percent:.1f}%"
+        )
+
+    if ignore_frames > 0:
+        ignore_frames -= 1
+
+        if ignore_frames == 1:
+            counted = False
+
+        cv2.putText(
+            frame,
+            "Global light chnage",
+            (20, 150),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (0, 0, 255),
+            2
+        )
+
+        cv2.putText(
+            frame,
+            f"Recovery: {ignore_frames}",
+            (20, 190),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.8,
+            (0, 0, 255),
+            2
+        )
+
+        cv2.imshow("Frame", frame)
+        cv2.imshow("Mask", mask)
+
+        if cv2.waitKey(1) &  0xFF == 27:
+            break
+
+        continue
 
     # Allow background subtractor to learn
     if frame_number < 50:
@@ -68,6 +114,7 @@ while True:
     for contour in contours:
 
         area = cv2.contourArea(contour)
+        print("AREA =", area)
 
         # Ignore noise
         if area < 3500:
@@ -109,7 +156,13 @@ while True:
         )
 
         # Count product once
-        if cy > line_y and not counted:
+        if (
+            cy > line_y
+            and not counted
+            and ignore_frames == 0
+            and foreground_percent < 5
+            # and area > 8000
+        ):
             count += 1
             counted = True
 

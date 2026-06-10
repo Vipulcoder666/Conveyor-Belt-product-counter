@@ -45,4 +45,11 @@ def detect_objects(frame):
         cv2.CHAIN_APPROX_SIMPLE
     )
 
-    return contours, mask
+    white_pixels = cv2.countNonZero(mask)
+
+    total_pixels = mask.shape[0] * mask.shape[1]
+
+    foreground_percent = (
+        white_pixels / total_pixels
+    ) * 100
+    return contours, mask, foreground_percent
